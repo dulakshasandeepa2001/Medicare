@@ -1,36 +1,40 @@
-from django.db import models 
-from  django.contrib.auth.models import AbstractBaseUser
-from django.db.models.signals import post_save
-# Create your models here.
+from mongoengine import Document, StringField, EmailField, BooleanField, DateTimeField
+from datetime import datetime
 
-class User(AbstractBaseUser):#inheriratance of that user class(derived class of the user )
-    username = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-
-    USERNAME_FIELD = 'email' #The user will log in with email Not username
-    REQUIRED_FIELDS = ['username']
+# MongoDB Document Models
+class User(Document):
+    """User model for MongoDB using MongoEngine"""
+    username = StringField(max_length=100, required=True)
+    email = EmailField(unique=True, required=True)
+    password = StringField(required=True)
+    phone = StringField(max_length=20, required=True)
+    age = StringField(max_length=3, required=True)
+    role = StringField(choices=['doctor', 'patient'], required=True)
+    created_at = DateTimeField(default=datetime.utcnow)
+    
+    meta = {
+        'collection': 'users',
+        'indexes': ['email']
+    }
     
     def __str__(self):
         return self.username
+
+
+class Profile(Document):
+    """User Profile model for MongoDB"""
+    user_email = EmailField(unique=True, required=True)
+    full_name = StringField(max_length=300, default='')
+    bio = StringField(max_length=300, default='')
+    image = StringField(default='default.jpg')
+    verified = BooleanField(default=False)
+    created_at = DateTimeField(default=datetime.utcnow)
     
-class Profile(models.Model ):#is the base class for all Django database models.
-    user = models.OneToOneField(User,on_delete=models.CASCADE)  #profile  table and other attributes
-    full_name = models.CharField(max_length=300)
-    bio = models.CharField(max_length=300)
-    image = models.ImageField(default='default.jpg',upload_to='user_image')
-    verified = models.BooleanField(default=False)
-
+    meta = {
+        'collection': 'profiles',
+        'indexes': ['user_email']
+    }
+    
     def __str__(self):
-        return  self.full_name
-        
-def create_user_profile(sender,instance,created,**kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-        
-
-def save_user_profile(sender,instance,**kwargs):
-    instance.profile.save()
-
-post_save.connect(create_user_profile,sender=User)
-post_save.connect(save_user_profile,sender=User)
+        return self.full_name if self.full_name else self.user_email
 

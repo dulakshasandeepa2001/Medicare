@@ -14,17 +14,27 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from .views import register_user
 
+
+@api_view(['GET'])
+def health_check(request):
+    """Simple health check endpoint"""
+    return Response({'status': 'Server is running', 'message': 'Welcome to Medicare API'})
+
+
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('', health_check),  # Root URL
     path('register/', register_user),
 ]
 
+@api_view(['post'])
+def register_user(request):
+    data=request.data #get the data from frontend
 
-
-
-
-
+    #1️⃣ Validate all requried fields exits
+    
