@@ -1,7 +1,6 @@
 from mongoengine import Document, StringField, EmailField, BooleanField, DateTimeField
 from datetime import datetime
 
-# MongoDB Document Models
 class User(Document):
     """User model for MongoDB using MongoEngine"""
     username = StringField(max_length=100, required=True)
@@ -37,4 +36,3 @@ class Profile(Document):
     
     def __str__(self):
         return self.full_name if self.full_name else self.user_email
-
