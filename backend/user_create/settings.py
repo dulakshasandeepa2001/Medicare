@@ -48,7 +48,7 @@ MIDDLEWARE = [
 # -----------------------------------------
 # URL CONFIGURATION
 # -----------------------------------------
-ROOT_URLCONF = 'backend.urls'
+ROOT_URLCONF = 'user_create.urls'
 
 TEMPLATES = [
     {
@@ -66,7 +66,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+WSGI_APPLICATION = 'user_create.wsgi.application'
 
 # -----------------------------------------
 # SUPABASE DATABASE CONFIGURATION

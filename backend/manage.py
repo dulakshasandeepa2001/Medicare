@@ -6,7 +6,7 @@ import sys #meken sys module eka import karanawa,sys module kiynne python interp
 
 def main(): #meken wennne main function eka hadanna puluwan
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'user_create.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
