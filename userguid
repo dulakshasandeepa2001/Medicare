@@ -1,0 +1,3 @@
+#virtualenvironment create-python -m venv .venv
+#workon veritual environment see - workon
+run the virtualenv - venv\Scripts\activate 

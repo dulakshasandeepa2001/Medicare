@@ -3,8 +3,7 @@ Django settings for backend project.
 """
 
 from pathlib import Path
-from datetime import timedelta
-import os
+from decouple import config
 
 # -----------------------------------------
 # BASE DIRECTORY
@@ -16,25 +15,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -----------------------------------------
 SECRET_KEY = 'django-insecure-REPLACE_THIS_WITH_YOUR_SECRET_KEY'
 DEBUG = True
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']  # Allow all for development
+ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
 
 # -----------------------------------------
 # APPLICATIONS
 # -----------------------------------------
 INSTALLED_APPS = [
-    'api',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-]
+    'user_create',  # <-- add this line so Django recognizes backend.models
 
+]
 # -----------------------------------------
 # MIDDLEWARE
 # -----------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -50,13 +57,52 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+# -----------------------------------------
+# SUPABASE DATABASE CONFIGURATION
+# -----------------------------------------
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': config('SUPABASE_DB_PASSWORD'),
+        'HOST': 'db.yuemlsjtzdpgclgnlogg.supabase.co',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+    }
+}
+
+
+# -----------------------------------------
+# PASSWORD VALIDATION
+# -----------------------------------------
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
 # -----------------------------------------
 # INTERNATIONALIZATION
@@ -94,35 +140,15 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://yuemlsjtzdpgclgnlogg.supabase.co",
 ]
 
-# -----------------------------------------
-# MONGOENGINE CONNECTION
-# -----------------------------------------
-from mongoengine import connect, disconnect
+CORS_ALLOW_CREDENTIALS = True
 
-try:
-    disconnect(alias='default')
-    connect(
-        db="Cluster1",
-        host="mongodb+srv://dulakshamedicare:qwe1234@cluster1.8ck7e4w.mongodb.net/?appName=Cluster1",
-        alias="default",
-        serverSelectionTimeoutMS=3000,
-        retryWrites=False,
-        connect=False
-    )
-    print("\n" + "="*70)
-    print("✅ SUCCESS: MongoDB Connection Configured!")
-    print("="*70)
-    print("📊 Database: Cluster1")
-    print("🔗 Host: cluster1.8ck7e4w.mongodb.net")
-    print("✔️ Status: Ready to Connect")
-    print("="*70 + "\n")
-    
-except Exception as e:
-    print("\n" + "="*70)
-    print("⚠️ WARNING: MongoDB Configuration Issue")
-    print("="*70)
-    print(f"Error: {str(e)}")
-    print("Note: Using MongoEngine in lazy mode")
-    print("="*70 + "\n")
+print("\n" + "="*70)
+print("✅ SUCCESS: Supabase PostgreSQL Database Configured!")
+print("="*70)
+print("🗄️ Database: PostgreSQL")
+print("🔗 Host: Supabase")
+print("✔️ Status: Ready to Connect")
+print("="*70 + "\n")
