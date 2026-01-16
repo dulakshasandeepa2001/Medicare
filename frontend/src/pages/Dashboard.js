@@ -5,7 +5,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/login');
+    navigate('../login');
   };
 
   return (
@@ -16,6 +16,7 @@ const Dashboard = () => {
             <h2>Dashboard</h2>
             <p className="welcome-message">Welcome back, Admin! 👋</p>
           </div>
+
           <button className="logout-btn" onClick={handleLogout}>
             Logout
           </button>
