@@ -33,3 +33,9 @@ class Doctor(models.Model):
 
     class Meta:
         db_table = 'register_DoctorID'
+
+
+
+
+
+

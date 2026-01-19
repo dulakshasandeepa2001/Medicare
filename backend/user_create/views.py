@@ -99,7 +99,12 @@ def login_user(request):
             return JsonResponse({"error": "Invalid username or password"}, status=401)
 
         return JsonResponse(
-            {"message": "Login successful", "username": user.username}, #dekam hari giyam meka return karnwwa 
+            {
+                "message": "Login successful", 
+                "username": user.username,
+                "role": user.role,
+                "doctorID": user.doctorID
+            }, #dekam hari giyam meka return karnwwa 
             status=200
         )
 

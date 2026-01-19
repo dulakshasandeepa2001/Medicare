@@ -28,4 +28,25 @@ class Migration(migrations.Migration):
                 'db_table': 'users',
             },
         ),
+        migrations.CreateModel(
+            name='Task',
+            fields=[
+                ('task_id', models.AutoField(primary_key=True, serialize=False)),
+                ('doctor_id', models.CharField(max_length=50)),
+                ('task_date', models.DateField()),
+                ('task_title', models.CharField(max_length=200)),
+                ('task_description', models.TextField(blank=True, null=True)),
+                ('task_type', models.CharField(max_length=50)),
+                ('start_time', models.TimeField()),
+                ('end_time', models.TimeField()),
+                ('priority', models.CharField(max_length=20)),
+                ('is_completed', models.BooleanField(default=False)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'db_table': 'doctor_tasks',
+            },
+        ),
+
     ]

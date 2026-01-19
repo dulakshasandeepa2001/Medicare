@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'user_create',  # <-- add this line so Django recognizes backend.models
+    'user_create',
+    'taskcreate',  # <-- add this line so Django recognizes backend.models
 
 ]
 # -----------------------------------------
