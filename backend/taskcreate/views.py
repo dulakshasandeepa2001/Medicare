@@ -116,4 +116,43 @@ def health_check(request):
     """Simple health check endpoint"""
     return Response({'status': 'Server is running', 'message': 'Welcome to Medicare API with Supabase!'})
 
-
+@api_view(['DELETE'])
+def delete_task(request, task_id):
+    """Delete a task by ID"""
+    try:
+        print(f"🗑️ Attempting to delete task ID: {task_id}")
+        
+        # Check if task exists
+        try:
+            task = Task.objects.get(task_id=task_id)
+        except Task.DoesNotExist:
+            print(f"❌ Task {task_id} not found")
+            return JsonResponse({
+                'success': False,
+                'error': 'Task not found'
+            }, status=404)
+        
+        # Store task info for logging
+        task_title = task.task_title
+        task_date = task.task_date
+        
+        # Delete the task
+        task.delete()
+        
+        print(f"✅ Task {task_id} deleted successfully: '{task_title}' on {task_date}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Task deleted successfully',
+            'deleted_task': {
+                'task_id': task_id,
+                'task_title': task_title,
+                'task_date': str(task_date)
+            }
+        }, status=200)
+    except Exception as e:
+        print(f"❌ Error deleting task {task_id}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to delete task: {str(e)}'
+        }, status=500)
