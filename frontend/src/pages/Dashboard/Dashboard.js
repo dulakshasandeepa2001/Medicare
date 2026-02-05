@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { 
+  Clock,
+   MapPin, 
+   AlertCircle,
   Calendar, 
   Users, 
   Stethoscope, 
@@ -19,6 +23,7 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import Task from './task'; // Fixed import path - removed './Dashboard/'// task component import karala thiyenne methanin 
+import { useAuth } from '../../context/AuthContext';//that is use for authentication and user data access, meka useAuth custom hook eka import karala thiyenne methanin
 
 const baseUrl = process.env.REACT_APP_BASE_URL;
 
@@ -37,6 +42,8 @@ const Dashboard = () => {
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const [clickedDate, setClickedDate] = useState(null);
   
+  // Authentication and user helpers (use the same source of truth as Task.js)
+  const { getDoctorId, isAuthenticated } = useAuth();
 
   const handlePreviousMonth = () => {
     const newDate = new Date(selectedDate);
@@ -86,25 +93,80 @@ const Dashboard = () => {
     fetchTasks(); // Refresh dashboard tasks
   };
 
+useEffect(() => {
+    if (selectedDate && isAuthenticated) {
+      fetchTasks();
+    }
+  }, [selectedDate, isAuthenticated]);
+
+  // When closing the Task modal or after changes, refresh the dashboard list
   useEffect(() => {
-    fetchTasks();
-  }, [selectedDate]);
+    if (!showTaskView && selectedDate && isAuthenticated) {
+      fetchTasks();
+    }
+  }, [showTaskView]);
 
   const fetchTasks = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('userData'));
-      const doctorID = userData?.doctor_id || userData?.user_id;
-      const formattedDate = selectedDate.toISOString().split('T')[0];
+    setLoading(true);
+    setError("");
 
-      const response = await fetch(
-        `${baseUrl}/get-tasks/?doctor_id=${doctorID}&task_date=${formattedDate}`
-      );
+    try {
+      const doctorID = getDoctorId();
+
+      if (!doctorID) {
+        console.error("❌ Doctor ID not found");
+        setError("Doctor ID not found. Please login again.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("🔍 Fetching tasks for doctor:", doctorID);
+
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      const url = `${baseUrl}/get-tasks/`; // ✅ No query parameters
+
+      console.log("📡 Request URL:", url);
+      console.log("📦 Request Body:", {
+        doctor_id: doctorID,
+        task_date: formattedDate,
+      });
+
+      const response = await fetch(url, {
+        method: "POST", // ✅ Changed from GET to POST
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // ✅ Send data in body as JSON
+          doctor_id: doctorID,
+          task_date: formattedDate,
+        }),
+      });
+
+      console.log("📥 Response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
-        setTasks(data.tasks || []);
+        console.log("✅ Tasks data:", data);
+
+        if (data.success || data.tasks) {
+          setTasks(data.tasks || []);
+          console.log("✅ Tasks loaded:", (data.tasks || []).length);
+        } else {
+          setError(data.error || "Failed to fetch tasks");
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("❌ Error response:", errorData);
+        setError(
+          errorData.error || `Failed to fetch tasks (${response.status})`,
+        );
       }
     } catch (error) {
-      console.error('Failed to fetch tasks:', error);
+      console.error("❌ Fetch error:", error);
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -190,6 +252,39 @@ const Dashboard = () => {
     if (!day) return false;
     return day === selectedDate.getDate();
   };
+
+  const getPriorityBadgeColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case "urgent":
+        return "bg-red-100 text-red-800";
+      case "high":
+        return "bg-orange-100 text-orange-800";
+      case "medium":
+        return "bg-blue-100 text-blue-800";
+      case "low":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+  
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case "urgent":
+        return "bg-red-500";
+      case "high":
+        return "bg-orange-500";
+      case "medium":
+        return "bg-blue-500";
+      case "low":
+        return "bg-green-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-3 sm:p-6 lg:p-8">
@@ -415,34 +510,69 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              <div className="space-y-5 lg:space-y-6">
-                {tasks.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">No tasks for this date</p>
-                ) : (
-                  tasks.map((task, index) => (
-                    <div key={index} className="flex items-center space-x-4 lg:space-x-6">
-                      <div className="text-sm lg:text-base text-gray-600 w-20 lg:w-24 flex-shrink-0 font-medium">
-                        {task.start_time.slice(0, 5)}-{task.end_time.slice(0, 5)}
-                      </div>
-                      <div className={`w-3 h-3 lg:w-4 lg:h-4 rounded-full 
-                        ${task.priority === 'urgent' ? 'bg-red-500' : 
-                          task.priority === 'high' ? 'bg-orange-500' : 
-                          task.priority === 'medium' ? 'bg-blue-500' : 'bg-green-500'} 
-                        flex-shrink-0`}>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-gray-800 text-base lg:text-lg truncate">
-                          {task.task_title}
-                        </h4>
-                        <p className="text-sm lg:text-base text-gray-600 truncate">
-                          {task.location || task.task_description}
-                        </p>
-                      </div>
-                    </div>
-                  ))
+  <div className="space-y-5 lg:space-y-6">
+    {tasks.length > 0 ? (
+      tasks.map((task, index) => (
+        <div
+          key={task.task_id || index}
+          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-4 flex-1">
+              <div
+                className={`w-1 h-full ${getPriorityColor(task.priority)} rounded-full`}
+              ></div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-3 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 truncate">
+                    {task.task_title}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadgeColor(task.priority)}`}
+                  >
+                    {task.priority}
+                  </span>
+                </div>
+
+                {task.task_description && (
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {task.task_description}
+                  </p>
                 )}
+
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="w-4 h-4" />
+                    <span>
+                      {task.start_time?.slice(0, 5)} - {task.end_time?.slice(0, 5)}
+                    </span>
+                  </div>
+
+                  {task.location && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{task.location}</span>
+                    </div>
+                  )}
+
+                  {task.task_type && (
+                    <div className="flex items-center space-x-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="capitalize">{task.task_type}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500 text-center py-8">No tasks for this date</p>
+    )}
+  </div>
+</div>
 
             {/* Appointments */}
             <div className="bg-white rounded-xl p-6 lg:p-8 shadow-lg">
@@ -550,7 +680,7 @@ const Dashboard = () => {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-2xl lg:text-3xl font-bold text-gray-800">30</span>
                   </div>
-                </div>
+                  </div>
               </div>
 
               <div className="space-y-3 lg:space-y-4">
@@ -594,6 +724,8 @@ const Dashboard = () => {
       </div>
     </div>
   );
+ 
+ 
 };
-
-export default Dashboard;
+ 
+ export default Dashboard;
