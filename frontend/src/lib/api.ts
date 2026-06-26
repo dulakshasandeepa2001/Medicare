@@ -1,6 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';// base url is constant and that is for use the process,env file or other things 
 
-export async function apiRequest(endpoint: string, options: RequestInit = {}) {
+export async function apiRequest(endpoint: string, options: RequestInit = {}) {//request endpoint is string and method of how to send the request and options is an object that contains the request options
   const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   
   const headers = {
@@ -27,8 +27,9 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
     }
 
     return data;
-  } catch (error: any) {
+  } catch (error){ {
     console.error(`API Error in ${endpoint}:`, error);
     throw error;
   }
+}
 }
