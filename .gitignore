@@ -1,0 +1,37 @@
+# Python virtual environments
+venv/
+Venv/
+ENV/
+env/
+ENV/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+backend/taskcreate/__pycache__/
+backend/user_create/__pycache__/
+backend/**/__pycache__/
+backend/venv/
+
+# Django local settings / db
+db.sqlite3
+db.sqlite3-journal
+.env
+backend/.env
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+frontend/build/
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

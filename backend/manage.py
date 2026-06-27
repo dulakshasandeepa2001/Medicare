@@ -1,8 +1,9 @@
+
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os #meken os module eka import karanawa,os module kiynne operating system ekata sambandha functions walata access karanna puluwan module ekak.
 import sys #meken sys module eka import karanawa,sys module kiynne python interpreter ekata sambandha functions walata access karanna puluwan module ekak.
-
+import django #meken django module eka import karanawa,django module kiynne Django framework ekata sambandha functions walata access karanna puluwan module ekak.   
 
 def main(): #meken wennne main function eka hadanna puluwan
     """Run administrative tasks."""
