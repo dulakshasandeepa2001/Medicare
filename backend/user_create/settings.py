@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'user_create',
-    'taskcreate',  # <-- add this line so Django recognizes backend.models
+    'taskcreate',
+    # <-- add this line so Django recognizes backend.models
 
 ]
 # -----------------------------------------

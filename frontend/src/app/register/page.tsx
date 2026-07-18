@@ -4,17 +4,27 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
-import { Stethoscope, Lock, User, Mail, Phone, Calendar, Landmark, AlertCircle, ArrowLeft } from "lucide-react";
+import { Stethoscope, Lock, User, Mail, Phone, Calendar, Landmark, AlertCircle, ArrowLeft, GraduationCap,University } from "lucide-react";
+import { text } from "stream/consumers";
+import { AnyRecord } from "dns";
 
-interface Doctor {
-  doctor_id: string;
-  doctors_name: string;
+interface PendingDoctor {
+  id: number;
+  username: string;
+  email: string;
+  phone: string;
+  NIC_number: string;  // ← was NICID
+  doctorID: string;
+  degrees: string;
+  university: string;
   working_hospital: string;
+  birthday: string;
+  created_at: string;
 }
 
 export default function Register() {
   const router = useRouter();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [doctors, setDoctors] = useState<PendingDoctor[]>([]);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,9 +33,32 @@ export default function Register() {
   const [role, setRole] = useState("patient");
   const [nicNumber, setNicNumber] = useState("");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [degrees, setDegrees] = useState("");
+  const [university, setUniversity] = useState<string[]>([]);
+  const [selectedUniversity,setSelcetedUniversity] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadUniversities = async () => {
+      try {
+        const response = await fetch(
+          "http://universities.hipolabs.com/search?country=Sri Lanka"
+        );
+        
+        const data = await response.json();
+        
+        const universityNames = data.map(
+           (item:{name:string}) => item.name
+        );
+        setUniversity(universityNames);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadUniversities();
+  },[]);
 
   useEffect(() => {
     async function fetchDoctors() {
@@ -33,7 +66,7 @@ export default function Register() {
         const data = await apiRequest("/get-doctor/");
         setDoctors(data.doctors || []);
         if (data.doctors && data.doctors.length > 0) {
-          setSelectedDoctorId(data.doctors[0].doctor_id);
+          setSelectedDoctorId(data.doctors[0].doctorID);
         }
       } catch (err) {
         console.error("Failed to load doctor database list", err);
@@ -68,16 +101,25 @@ export default function Register() {
           NIC_number: nicNumber,
           doctorID: selectedDoctorId,
           created_at: now,
-          updated_at: now
+          updated_at: now,
         }),
       });
 
-      setSuccess("Account registered successfully! Redirecting to login...");
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
-    } catch (err: any) {
-      setError(err.message || "Failed to create account. Please check user details.");
+      if (role === "doctor") {
+        setSuccess("Registration submitted for admin approval! You'll be notified.");
+      } else {
+        setSuccess("Account created! Redirecting to login...");
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }
+    } catch (err: unknown) {
+      // Prefer narrowing the error to Error instead of using `any` to satisfy eslint
+      if (err instanceof Error) {
+        setError(err.message || "Failed to create account. Please check user details.");
+      } else {
+        setError("Failed to create account. Please check user details.");
+      }
     } finally {
       setLoading(false);
     }
@@ -257,26 +299,54 @@ export default function Register() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="doctor_id">
-                {role === "doctor" ? "Link to Doctor ID Record" : "Assign Primary Doctor"}
+              <label className="text-xs font-semibold text-slate-400" htmlFor="GraduationCap">
+                Degrees
               </label>
-              <select
-                id="doctor_id"
-                value={selectedDoctorId}
-                onChange={(e) => setSelectedDoctorId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
-              >
-                {doctors.length === 0 ? (
-                  <option value="">No registry doctor found</option>
-                ) : (
-                  doctors.map((d) => (
-                    <option key={d.doctor_id} value={d.doctor_id}>
-                      {d.doctors_name} ({d.doctor_id})
-                    </option>
-                  ))
-                )}
-              </select>
+              <div className="relative">
+                <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={degrees}
+                  onChange={(e) => setDegrees(e.target.value)}
+                  placeholder="MBBS, MD"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                />
+              </div>
             </div>
+
+             <div className="space-y-1">
+  <label
+    className="text-xs font-semibold text-slate-400"
+    htmlFor="university"
+  >
+    University
+  </label>
+
+  <select
+    id="university"
+    value={selectedUniversity}
+    onChange={(e) => setSelcetedUniversity(e.target.value)}
+    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+  >
+
+    <option value="">
+      Select University
+    </option>
+
+    {university.map((university) => (
+      <option
+        key={university}
+        value={university}
+        className="bg-slate-950 text-slate-200"
+      >
+        {university}
+      </option>
+    ))}
+
+  </select>
+</div>
+
+
           </div>
 
           {/* Submit */}
