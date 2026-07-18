@@ -3,7 +3,7 @@ Django settings for backend project.
 """
 
 from pathlib import Path
-from decouple import config
+from decouple import config 
 
 # -----------------------------------------
 # BASE DIRECTORY
@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'user_create',
-    'taskcreate',  # <-- add this line so Django recognizes backend.models
+    'taskcreate',
+    # <-- add this line so Django recognizes backend.models
 
 ]
 # -----------------------------------------
@@ -70,21 +71,41 @@ TEMPLATES = [
 WSGI_APPLICATION = 'user_create.wsgi.application'
 
 # -----------------------------------------
-# SUPABASE DATABASE CONFIGURATION
+# DATABASE CONFIGURATION WITH FALLBACK
 # -----------------------------------------
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': config('SUPABASE_DB_PASSWORD'),
-        'HOST': 'db.yuemlsjtzdpgclgnlogg.supabase.co',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+import socket
+
+def is_supabase_reachable():
+    try:
+        socket.gethostbyname('db.wixgbvdcwteghicynwvz.supabase.co')
+        return True
+    except socket.gaierror:
+        return False
+
+if is_supabase_reachable():
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': config('SUPABASE_DB_PASSWORD'),
+            'HOST': 'db.wixgbvdcwteghicynwvz.supabase.co',
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
     }
-}
+    print("🔗 Connected to Supabase PostgreSQL Database!")
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+    print("🔌 Offline/Sandbox mode: Falling back to local SQLite Database!")
+
 
 
 # -----------------------------------------

@@ -2,66 +2,56 @@ from rest_framework.decorators import api_view #meken wennne api view ekak hadan
 from rest_framework.response import Response #meken wennne api view ekak return karanna puluwan response ekak
 from django.http import JsonResponse #meken wennne json response ekak return karanna puluwan
 import json #meken wennne json data ekak handle karanna puluwan, handle krnwa kiynne json data ekak load krnna, dump krnna wage kriyawalata
-from user_create.models import User #meken wennne User model ekata access karanna puluwan
+from user_create.models import PendingDoctor, User #meken wennne User model ekata access karanna puluwan
 from django.core.exceptions import ValidationError #meken wennne validation error ekak handle karanna puluwan,validation error thiyenne data tika valid naththam raise krnna puluwan error ekak
 from django.contrib.auth.hashers import make_password #meken wennne password ekak hash karanna puluwan
 from user_create.models import Doctor #user crete app eke model wala kiyna eka thiyenene
 from django.contrib.auth.hashers import check_password #meken karnne password ekath hash karnn gannwa
 
-@api_view(['POST']) #meken wennne me view ekata POST request ekakma allow krnna,@api_view kiynne me view ekata api view ekak hadanna use krnna decorator ekak
-def create_user(request): #meken wennne user create karanna puluwan function ekak,meke thama functione ek hadanne
-    """Create a new user with Supabase PostgreSQL"""
-    try: #meken wennne try block ekak start krnna,try block ekak thama error handling krnna use krnna
-        data = json.loads(request.body) #meken wennne request body eke thiyena json data eka load krnna,puluwan wenne json data eka python dictionary ekakata convert krnna,data kiynne dictionary ekak
-        username = data.get('username') #
-        email = data.get('email')
-        password = data.get('password')
-        NIC_number = data.get('NIC_number')
-        phone = data.get("phone")
-        birthday = data.get("birthday")
-        role = data.get("role")
-        created_at = data.get("created_at")
-        updated_at = data.get("updated_at")
-        doctorID = data.get("doctorID")
-        
-        # Validate required fields
-        if not all([username, email, password, phone, birthday, role, doctorID, NIC_number]): #if not all
-            return JsonResponse({'error': 'All fields are required'}, status=400) #return krnna json response ekak,error kiynne all fields are required,status 400 kiynne bad request ekak
-        
-        # Check if user already exists
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({'error': 'Username already exists'}, status=400)
-        
-        if User.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'Email already exists'}, status=400)
-        
-        # Create a new user instance
-        user = User.objects.create( #meken wennne new user instance ekak hadanna puluwan data base eke,User.objects.create kiynne new user ekak create krnna use krnna method ekak,methnin thama models.py ekath ekk connect wela data save wenn orm ekat ynne]
-                                   
-            username=username,
-            email=email,
-            password=make_password(password),  # Hash the password
-            phone=phone,
-            birthday=birthday,
-            role=role,
-             doctorID=doctorID,
-             NIC_number=NIC_number,
-            created_at=created_at,
-            updated_at=updated_at
-        )
 
+@api_view(['POST'])
+def create_user(request):
+    data = json.loads(request.body)
+    role = data.get("role")
+    
+    # ... validation ...
+    
+    if role == "patient":
+        # ── PATH A: Patient → directly to users table ──
+        user = User.objects.create(
+            username=data.get('username'),
+            email=data.get('email'),
+            password=make_password(data.get('password')),
+            NIC_number=data.get('NIC_number'),
+            phone=data.get("phone"),
+            birthday=data.get("birthday"),
+            role=data.get("role"),
+            created_at=data.get("created_at"),
+            updated_at=data.get("updated_at")
+        )
+        return JsonResponse({'message': 'Account created! You can login now.'})
+    
+    elif role == "doctor":
+        # ── PATH B: Doctor → goes to pending_doctors table ──
+        # Also check if this doctorID exists in register_DoctorID
+        pending = PendingDoctor.objects.create(
+            username=data.get('username'),
+            email=data.get('email'),
+            password=data.get('password'),
+            phone=data.get('phone'),
+            NIC_number=data.get('NIC_number'),
+            birthday=data.get('birthday'),
+            doctorID=data.get('doctorID')  ,
+            university=data.get('university'),
+            degrees=data.get('degrees'),
+            Working_hospital=data.get('working_hospital'),
+            status='pending'  # ← waiting for admin
+            
+        )
         return JsonResponse({
-            'message': 'User created successfully',
-            'user_id': user.id,
-            'email': user.email
+            'message': 'Registration submitted! Waiting for admin approval.',
+            'pending_id': pending.id
         })
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
-    except ValueError as e: #meken wennne value error ekak handle krnna puluwan,ValueError kiynne error ekak thiyenne data tika invalid naththam raise krnna puluwan
-        return JsonResponse({'error': f'Invalid data: {str(e)}'}, status=400)
-    except Exception as e: #meken wennne general exception ekak handle krnna puluwan,Exception kiynne error ekak thiyenne unexpected naththam raise krnna puluwan
-        return JsonResponse({'error': f'Failed to create user: {str(e)}'}, status=500)
 @api_view(['GET'])
 def get_doctor(request):
     """Get all doctors from Supabase"""
@@ -117,3 +107,43 @@ def login_user(request):
 def health_check(request):
     """Simple health check endpoint"""
     return Response({'status': 'Server is running', 'message': 'Welcome to Medicare API with Supabase!'})
+
+@api_view(['GET'])
+def get_pending_doctors(request):
+    """Get all pending doctors from Supabase"""
+    pending_doctors = PendingDoctor.objects.filter(status='pending').values(
+        'id', 'username', 'email', 'phone', 'NIC_number', 'birthday', 'university', 'degrees', 'working_hospital'
+    )
+    return JsonResponse({'pending_doctors': list(pending_doctors)})
+@api_view(['POST'])
+def approve_doctor(request,pk):
+    "Admin approves a pending doctor and moves them to the main User table"
+    try:
+        pending_doctor = PendingDoctor.objects.get(id=pk, status='pending')
+        user = User.objects.create(
+            username=pending_doctor.username,
+            email=pending_doctor.email,
+            password=pending_doctor.password,  # Already hashed
+            phone=pending_doctor.phone,
+            NIC_number=pending_doctor.NIC_number,
+            birthday=pending_doctor.birthday,
+            role='doctor',
+            doctorID=pending_doctor.doctorID
+        )
+        pending_doctor.status = 'approved'
+        pending_doctor.save()
+        return JsonResponse({'message': f'Doctor {user.username} approved and moved to users table.'})
+    except PendingDoctor.DoesNotExist:
+        return JsonResponse({'error': 'Pending doctor not found or already processed.'}, status=404)
+    
+@api_view(['POST'])
+def reject_doctor(request, pk):
+        """Admin rejects a pending doctor"""
+        try:
+            pending_doctor = PendingDoctor.objects.get(id=pk, status='pending')
+            pending_doctor.status = 'rejected'
+            pending_doctor.save()
+            return JsonResponse({'message': f'Doctor {pending_doctor.username} rejected.'})
+        except PendingDoctor.DoesNotExist:
+            return JsonResponse({'error': 'Pending doctor not found or already processed.'}, status=404)    
+            

@@ -34,6 +34,32 @@ class Doctor(models.Model):
     class Meta:
         db_table = 'register_DoctorID'
 
+class PendingDoctor(models.Model):
+    """Temporary table for doctors awaiting admin approval"""
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128)  # already hashed
+    phone = models.CharField(max_length=15)
+    NIC_number = models.CharField(max_length=12, unique=True)
+    birthday = models.DateField()
+    doctorID = models.CharField(max_length=50)
+    degrees = models.CharField(max_length=100, blank=True, null=True)
+    university = models.CharField(max_length=100, blank=True, null=True)
+    working_hospital = models.CharField(max_length=150, blank=True, null=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
+        default='pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.username} - {self.status}"
+
+    class Meta:
+        db_table = 'pending_doctors'
+
 
 
 
