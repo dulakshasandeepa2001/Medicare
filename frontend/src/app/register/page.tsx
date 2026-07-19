@@ -35,10 +35,11 @@ export default function Register() {
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [degrees, setDegrees] = useState("");
   const [university, setUniversity] = useState<string[]>([]);
-  const [selectedUniversity,setSelcetedUniversity] = useState("");
+  const [selectedUniversity, setSelectedUniversity] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState("");
 
   useEffect(() => {
     const loadUniversities = async () => {
@@ -60,20 +61,7 @@ export default function Register() {
     loadUniversities();
   },[]);
 
-  useEffect(() => {
-    async function fetchDoctors() {
-      try {
-        const data = await apiRequest("/get-doctor/");
-        setDoctors(data.doctors || []);
-        if (data.doctors && data.doctors.length > 0) {
-          setSelectedDoctorId(data.doctors[0].doctorID);
-        }
-      } catch (err) {
-        console.error("Failed to load doctor database list", err);
-      }
-    }
-    fetchDoctors();
-  }, []);
+  
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,55 +286,82 @@ export default function Register() {
               </select>
             </div>
 
+            {role === "doctor" && (
+              <>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400" htmlFor="GraduationCap">
+                    Degrees
+                  </label>
+                  <div className="relative">
+                    <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={degrees}
+                      onChange={(e) => setDegrees(e.target.value)}
+                      placeholder="MBBS, MD"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label
+                    className="text-xs font-semibold text-slate-400"
+                    htmlFor="university"
+                  >
+                    University
+                  </label>
+
+                  <select
+                    id="university"
+                    value={selectedUniversity}
+                    onChange={(e) => setSelectedUniversity(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+                  >
+
+                    <option value="">
+                      Select University
+                    </option>
+
+                    {university.map((university) => (
+                      <option
+                        key={university}
+                        value={university}
+                        className="bg-slate-950 text-slate-200"
+                      >
+                        {university}
+                      </option>
+                    ))}
+
+                  </select>
+                </div>
+              </>
+            )}
+              
+          {role === "patient" && (
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="GraduationCap">
-                Degrees
+              <label className="text-xs font-semibold text-slate-400" htmlFor="doctorList">
+                Preferred Doctor
               </label>
-              <div className="relative">
-                <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={degrees}
-                  onChange={(e) => setDegrees(e.target.value)}
-                  placeholder="MBBS, MD"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
-                />
-              </div>
+              <select
+                id="doctorList"
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+              >
+                <option value="">Select a Doctor</option>
+                {doctors.map((doctor) => (
+                  <option
+                    key={doctor.id}
+                    value={doctor.id}
+                    className="bg-slate-950 text-slate-200"
+                  >
+                    {doctor.username} - {doctor.email}
+                  </option>
+                ))}
+              </select>
             </div>
-
-             <div className="space-y-1">
-  <label
-    className="text-xs font-semibold text-slate-400"
-    htmlFor="university"
-  >
-    University
-  </label>
-
-  <select
-    id="university"
-    value={selectedUniversity}
-    onChange={(e) => setSelcetedUniversity(e.target.value)}
-    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
-  >
-
-    <option value="">
-      Select University
-    </option>
-
-    {university.map((university) => (
-      <option
-        key={university}
-        value={university}
-        className="bg-slate-950 text-slate-200"
-      >
-        {university}
-      </option>
-    ))}
-
-  </select>
-</div>
-
-
+          )}
           </div>
 
           {/* Submit */}
