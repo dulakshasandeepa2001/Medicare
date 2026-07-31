@@ -103,3 +103,6 @@ This project is open-source under the MIT License.
 For ideas, issues, or collaboration, open a GitHub issue or contact the maintainer.
 
 Contributors are welcome !!
+
+# start the project
+.\backend\Venv\Scripts\activate

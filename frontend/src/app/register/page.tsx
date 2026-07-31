@@ -40,6 +40,7 @@ export default function Register() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [workingHospital, setWorkingHospital] = useState("");
 
   useEffect(() => {
     const loadUniversities = async () => {
@@ -69,7 +70,7 @@ export default function Register() {
     setSuccess("");
     setLoading(true);
 
-    if (!username || !email || !password || !phone || !birthday || !role || !nicNumber || !selectedDoctorId) {
+    if (!username || !email || !password || !phone || !birthday || !role || !nicNumber ) {
       setError("All fields, including NIC and Doctor assignment, are required.");
       setLoading(false);
       return;
@@ -87,9 +88,10 @@ export default function Register() {
           birthday,
           role,
           NIC_number: nicNumber,
-          doctorID: selectedDoctorId,
+          degrees,
+          university: selectedUniversity,
           created_at: now,
-          updated_at: now,
+          updated_at: now,  
         }),
       });
 
@@ -333,35 +335,55 @@ export default function Register() {
                       </option>
                     ))}
 
+
                   </select>
+                  {selectedUniversity === "other" && (
+                  <div className="space-y-1">
+                    <label
+                      className="text-xs font-semibold text-slate-400"
+                      htmlFor="otherUniversity"
+                    >
+                      Other University
+                    </label>
+                    <div className="relative">
+                      <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={workingHospital}
+                        onChange={(e) => setWorkingHospital(e.target.value)}
+                        placeholder="Enter your university"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label
+                    className="text-xs font-semibold text-slate-400"
+                    htmlFor="workingHospital"
+                  >
+                    Working Hospital
+                  </label>
+                  <div className="relative">
+                    <Stethoscope className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      id="workingHospital"
+                      type="text"
+                      value={workingHospital}
+                      onChange={(e) => setWorkingHospital(e.target.value)}
+                      placeholder="General Hospital"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                    />
+                  </div>
+                </div>
                 </div>
               </>
             )}
+
+            
               
-          {role === "patient" && (
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="doctorList">
-                Preferred Doctor
-              </label>
-              <select
-                id="doctorList"
-                value={selectedDoctor}
-                onChange={(e) => setSelectedDoctor(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
-              >
-                <option value="">Select a Doctor</option>
-                {doctors.map((doctor) => (
-                  <option
-                    key={doctor.id}
-                    value={doctor.id}
-                    className="bg-slate-950 text-slate-200"
-                  >
-                    {doctor.username} - {doctor.email}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          
           </div>
 
           {/* Submit */}
