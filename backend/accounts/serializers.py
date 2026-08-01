@@ -5,9 +5,9 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'birthday', 'NIC_number', 'degrees', 'university','working_hospital', 'created_at', 'updated_at',]
         
-password = serializers.CharField(write_only=True)
+        
 
 def create(self, validated_data):
     password = validated_data.pop('password')

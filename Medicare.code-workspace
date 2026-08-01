@@ -5,5 +5,10 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"python.analysis.extraPaths": [
+			"./backend/taskcreate",
+			"./backend/user_create"
+		]
+	}
 }
