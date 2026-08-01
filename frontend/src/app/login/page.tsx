@@ -19,7 +19,9 @@ export default function Login() {
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        if (user.role === "doctor") {
+        if (user.role === "admin") {
+          router.push("/admin/dashboard");
+        } else if (user.role === "doctor") {
           router.push("/doctor/dashboard");
         } else {
           router.push("/patient/dashboard");
@@ -57,8 +59,9 @@ export default function Login() {
         })
       );
 
-      // Redirect based on role
-      if (data.role === "doctor") {
+      if (data.role === "admin") {
+        router.push("/admin/dashboard");
+      } else if (data.role === "doctor") {
         router.push("/doctor/dashboard");
       } else {
         router.push("/patient/dashboard");
