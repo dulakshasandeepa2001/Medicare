@@ -35,10 +35,12 @@ export default function Register() {
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [degrees, setDegrees] = useState("");
   const [university, setUniversity] = useState<string[]>([]);
-  const [selectedUniversity,setSelcetedUniversity] = useState("");
+  const [selectedUniversity, setSelectedUniversity] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [workingHospital, setWorkingHospital] = useState("");
 
   useEffect(() => {
     const loadUniversities = async () => {
@@ -60,20 +62,7 @@ export default function Register() {
     loadUniversities();
   },[]);
 
-  useEffect(() => {
-    async function fetchDoctors() {
-      try {
-        const data = await apiRequest("/get-doctor/");
-        setDoctors(data.doctors || []);
-        if (data.doctors && data.doctors.length > 0) {
-          setSelectedDoctorId(data.doctors[0].doctorID);
-        }
-      } catch (err) {
-        console.error("Failed to load doctor database list", err);
-      }
-    }
-    fetchDoctors();
-  }, []);
+  
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +70,7 @@ export default function Register() {
     setSuccess("");
     setLoading(true);
 
-    if (!username || !email || !password || !phone || !birthday || !role || !nicNumber || !selectedDoctorId) {
+    if (!username || !email || !password || !phone || !birthday || !role || !nicNumber ) {
       setError("All fields, including NIC and Doctor assignment, are required.");
       setLoading(false);
       return;
@@ -99,9 +88,10 @@ export default function Register() {
           birthday,
           role,
           NIC_number: nicNumber,
-          doctorID: selectedDoctorId,
+          degrees,
+          university: selectedUniversity,
           created_at: now,
-          updated_at: now,
+          updated_at: now,  
         }),
       });
 
@@ -298,55 +288,102 @@ export default function Register() {
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-400" htmlFor="GraduationCap">
-                Degrees
-              </label>
-              <div className="relative">
-                <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={degrees}
-                  onChange={(e) => setDegrees(e.target.value)}
-                  placeholder="MBBS, MD"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
-                />
-              </div>
-            </div>
+            {role === "doctor" && (
+              <>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-400" htmlFor="GraduationCap">
+                    Degrees
+                  </label>
+                  <div className="relative">
+                    <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={degrees}
+                      onChange={(e) => setDegrees(e.target.value)}
+                      placeholder="MBBS, MD"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                    />
+                  </div>
+                </div>
 
-             <div className="space-y-1">
-  <label
-    className="text-xs font-semibold text-slate-400"
-    htmlFor="university"
-  >
-    University
-  </label>
+                <div className="space-y-1">
+                  <label
+                    className="text-xs font-semibold text-slate-400"
+                    htmlFor="university"
+                  >
+                    University
+                  </label>
 
-  <select
-    id="university"
-    value={selectedUniversity}
-    onChange={(e) => setSelcetedUniversity(e.target.value)}
-    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
-  >
+                  <select
+                    id="university"
+                    value={selectedUniversity}
+                    onChange={(e) => setSelectedUniversity(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500"
+                  >
 
-    <option value="">
-      Select University
-    </option>
+                    <option value="">
+                      Select University
+                    </option>
 
-    {university.map((university) => (
-      <option
-        key={university}
-        value={university}
-        className="bg-slate-950 text-slate-200"
-      >
-        {university}
-      </option>
-    ))}
-
-  </select>
-</div>
+                    {university.map((university) => (
+                      <option
+                        key={university}
+                        value={university}
+                        className="bg-slate-950 text-slate-200"
+                      >
+                        {university}
+                      </option>
+                    ))}
 
 
+                  </select>
+                  {selectedUniversity === "other" && (
+                  <div className="space-y-1">
+                    <label
+                      className="text-xs font-semibold text-slate-400"
+                      htmlFor="otherUniversity"
+                    >
+                      Other University
+                    </label>
+                    <div className="relative">
+                      <GraduationCap className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={workingHospital}
+                        onChange={(e) => setWorkingHospital(e.target.value)}
+                        placeholder="Enter your university"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label
+                    className="text-xs font-semibold text-slate-400"
+                    htmlFor="workingHospital"
+                  >
+                    Working Hospital
+                  </label>
+                  <div className="relative">
+                    <Stethoscope className="w-4 h-4 text-slate-600 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      id="workingHospital"
+                      type="text"
+                      value={workingHospital}
+                      onChange={(e) => setWorkingHospital(e.target.value)}
+                      placeholder="General Hospital"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-teal-500 transition-all"
+                    />
+                  </div>
+                </div>
+                </div>
+              </>
+            )}
+
+            
+              
+          
           </div>
 
           {/* Submit */}

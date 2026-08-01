@@ -34,19 +34,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadDoctors() {
-      try {
-        const data = await apiRequest("/get-doctor/");
-        setDoctors(data.doctors || []);
-      } catch (err) {
-        console.error("Failed to load doctors:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDoctors();
-  }, []);
+  
 
   const filteredDoctors = doctors.filter((doc) =>
     doc.doctors_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
