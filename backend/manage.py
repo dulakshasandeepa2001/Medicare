@@ -1,13 +1,12 @@
 
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
-import os #meken os module eka import karanawa,os module kiynne operating system ekata sambandha functions walata access karanna puluwan module ekak.
-import sys #meken sys module eka import karanawa,sys module kiynne python interpreter ekata sambandha functions walata access karanna puluwan module ekak.
-import django #meken django module eka import karanawa,django module kiynne Django framework ekata sambandha functions walata access karanna puluwan module ekak.   
+import os
+import sys
 
-def main(): #meken wennne main function eka hadanna puluwan
+def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'user_create.settings') #meken wennne DJANGO_SETTINGS_MODULE kiyala environment variable ekata 'user_create.settings' kiyala value ekak set karanna,mehemai karanne Django project eke settings module eka pennanna.
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'medicare_project.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -21,3 +20,4 @@ def main(): #meken wennne main function eka hadanna puluwan
 
 if __name__ == '__main__':
     main()
+
