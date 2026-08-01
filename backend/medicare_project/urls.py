@@ -1,22 +1,26 @@
 """
 URL configuration for medicare_project project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path
+from accounts.views import (
+    create_user, get_users, get_doctor, login_user,
+    get_pending_doctors, approve_doctor, reject_doctor,
+)
+from taskcreate.views import create_task, health_check, get_tasks, delete_task
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("create-user/", create_user),
+    path("get-users/", get_users),
+    path("login/", login_user),
+    path("get-doctor/", get_doctor),
+    path("create-task/", create_task),
+    path("health-check/", health_check),
+    path("get-tasks/", get_tasks),
+    path("delete-task/<int:task_id>/", delete_task),
+    path("pending-doctors/", get_pending_doctors),
+    path("approve-doctor/<int:pk>/", approve_doctor),
+    path("reject-doctor/<int:pk>/", reject_doctor),
 ]
+
