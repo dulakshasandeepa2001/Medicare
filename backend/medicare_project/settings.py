@@ -74,39 +74,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'medicare_project.wsgi.application'
 
-# -----------------------------------------
-# DATABASE CONFIGURATION WITH FALLBACK
-# -----------------------------------------
-def is_supabase_reachable():
-    try:
-        socket.gethostbyname('db.wixgbvdcwteghicynwvz.supabase.co')
-        return True
-    except socket.gaierror:
-        return False
-
-if is_supabase_reachable():
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'postgres',
-            'USER': 'postgres',
-            'PASSWORD': config('SUPABASE_DB_PASSWORD', default=''),
-            'HOST': 'db.wixgbvdcwteghicynwvz.supabase.co',
-            'PORT': '5432',
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('SUPABASE_DB_NAME', default='postgres'),
+        'USER': config('SUPABASE_DB_USER', default='postgres'),
+        'PASSWORD': config('SUPABASE_DB_PASSWORD', default=''),
+        'HOST': config('SUPABASE_DB_HOST', default='aws-1-ap-southeast-2.pooler.supabase.com'),
+        'PORT': config('SUPABASE_DB_PORT', default='5432'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
-    print("[INFO] Connected to Supabase PostgreSQL Database!")
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-    print("[INFO] Offline/Sandbox mode: Falling back to local SQLite Database!")
+}
 
 # -----------------------------------------
 # PASSWORD VALIDATION
@@ -157,12 +137,20 @@ REST_FRAMEWORK = {
 }
 
 # -----------------------------------------
-# CORS SETTINGS
+# CORS & CSRF SETTINGS
 # -----------------------------------------
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://yuemlsjtzdpgclgnlogg.supabase.co",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

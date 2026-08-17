@@ -57,7 +57,7 @@ def create_task(request):
         )
 
 
-api_view(['POST'])
+@api_view(['POST'])
 def get_tasks(request):
     """Get all tasks for a specific doctor and date using POST method"""
     try:

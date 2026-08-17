@@ -73,11 +73,18 @@ def login_user(request):
         if not user.is_approved:
             return JsonResponse({"error": "Your account is pending admin approval."}, status=403)
 
+        doctor_id = user.doctorID
+        if user.role == 'doctor' and not doctor_id:
+            matched_doc = Doctor.objects.filter(doctor_nicnumber=user.NIC_number).first()
+            doctor_id = matched_doc.doctor_id if matched_doc else f"DOC-{user.id:04d}"
+            user.doctorID = doctor_id
+            user.save(update_fields=['doctorID'])
+
         return JsonResponse({
             "message": "Login successful",
             "username": user.username,
             "role": user.role,
-            "doctorID": user.doctorID,
+            "doctorID": doctor_id,
         }, status=200)
 
     except json.JSONDecodeError:
@@ -131,6 +138,9 @@ def approve_doctor(request, pk): #pk means
     try:
         pending = PendingDoctor.objects.get(id=pk, status='pending')
 
+        matched_doc = Doctor.objects.filter(doctor_nicnumber=pending.NIC_number).first()
+        doc_id = matched_doc.doctor_id if matched_doc else f"DOC-{pending.id:04d}"
+
         user = User(
             username=pending.username,
             email=pending.email,
@@ -141,6 +151,7 @@ def approve_doctor(request, pk): #pk means
             degrees=pending.degrees,
             university=pending.university,
             working_hospital=pending.working_hospital,
+            doctorID=doc_id,
             is_approved=True,
         )
         user.set_password(pending.password)
